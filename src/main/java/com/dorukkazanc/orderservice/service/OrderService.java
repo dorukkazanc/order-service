@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,6 +53,14 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponseDTO> getOrdersByCustomerId(String customerId) {
         return orderRepository.findByCustomerId(customerId)
+                .stream()
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponseDTO> getOrdersByCustomerIdAndDateRange(String customerId, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderRepository.findByCustomerIdAndCreatedDateBetween(customerId, startDate, endDate)
                 .stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());

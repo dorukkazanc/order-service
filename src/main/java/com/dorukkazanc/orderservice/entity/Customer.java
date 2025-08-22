@@ -13,6 +13,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "customers")
@@ -21,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Customer extends AuditableEntity{
+public class Customer extends AuditableEntity implements UserDetails{
     private String username;
     private String password;
     private Boolean active;
@@ -35,5 +40,10 @@ public class Customer extends AuditableEntity{
         if(this.role == null){
             this.role = UserRole.CUSTOMER;
         }
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
     }
 }
