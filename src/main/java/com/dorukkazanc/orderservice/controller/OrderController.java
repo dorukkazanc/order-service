@@ -15,6 +15,7 @@ import com.dorukkazanc.orderservice.service.ResponseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +32,20 @@ public class OrderController {
     private final ResponseService responseService;
 
     @PostMapping
-    public ResponseEntity<BaseResponse<OrderResponseDTO>> createOrder(@Valid @RequestBody OrderRequestDTO orderRequestDTO) {
-        OrderResponseDTO createdOrder = orderService.createOrder(orderRequestDTO);
-        return responseService.created(createdOrder, "Order created successfully");
+    public ResponseEntity<BaseResponse<OrderResponseDTO>> createOrder(
+            @Valid @RequestBody OrderRequestDTO orderRequestDTO,
+            Authentication authentication) {
+        try{
+
+            Customer customer = (Customer) authentication.getPrincipal();
+            OrderResponseDTO createdOrder = orderService.createOrder(customer.getId(), orderRequestDTO);
+
+            return responseService.created(createdOrder, "Order created successfully");
+
+        }catch(Exception e){
+            return responseService.error(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+
     }
 
     @GetMapping
@@ -91,7 +103,7 @@ public class OrderController {
     public ResponseEntity<BaseResponse<Void>> deleteOrder(@PathVariable Long id) {
         boolean deleted = orderService.deleteOrder(id);
         return deleted 
-                ? responseService.noContent("Order deleted successfully")
+                ? responseService.noContent("Order canceled successfully")
                 : responseService.notFound("Order not found with id: " + id);
     }
 }

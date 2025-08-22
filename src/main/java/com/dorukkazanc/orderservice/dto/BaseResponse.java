@@ -63,4 +63,13 @@ public class BaseResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
+    
+    public static <T> BaseResponse<T> error(String message, T data) {
+        return BaseResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 }

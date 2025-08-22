@@ -30,10 +30,17 @@ public class Order extends AuditableEntity {
     @Column(name= "asset_name")
     private String assetName;
     @Column(name= "order_side")
-    @Enumerated(EnumType.STRING)  // ✅ This is required!
+    @Enumerated(EnumType.STRING)
     private OrderSide orderSide;
     private Long size;
     private BigDecimal price;
-    @Enumerated(EnumType.STRING)  // ✅ This is required!
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
+
+    @PrePersist
+    protected void onCreate(){
+        if(this.status == null){
+            this.status = OrderStatus.PENDING;
+        }
+    }
 }

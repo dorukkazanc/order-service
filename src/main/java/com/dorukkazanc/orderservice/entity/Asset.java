@@ -18,6 +18,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 @Table(name = "assets")
 public class Asset extends AuditableEntity{
     @Column(name = "customer_id")

@@ -3,13 +3,17 @@ package com.dorukkazanc.orderservice.service;
 import com.dorukkazanc.orderservice.dto.OrderRequestDTO;
 import com.dorukkazanc.orderservice.dto.OrderResponseDTO;
 import com.dorukkazanc.orderservice.dto.OrderUpdateDTO;
+import com.dorukkazanc.orderservice.entity.Asset;
 import com.dorukkazanc.orderservice.entity.Order;
+import com.dorukkazanc.orderservice.enums.OrderSide;
 import com.dorukkazanc.orderservice.enums.OrderStatus;
+import com.dorukkazanc.orderservice.exception.InsufficientAssetException;
 import com.dorukkazanc.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +25,22 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final AssetService assetService;
 
-    public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) {
+    public OrderResponseDTO createOrder(Long customerId, OrderRequestDTO orderRequestDTO) {
+        Asset asset;
+        if(orderRequestDTO.getOrderSide().equals(OrderSide.BUY)) {
+            asset = assetService.getAssetByCustomerIdAndName(customerId, "TRY");
+        }else {
+            asset = assetService.getAssetByCustomerIdAndName(customerId, orderRequestDTO.getAssetName());
+        }
+
+        if(checkIfAssetIsNotSufficient(orderRequestDTO, asset)) {
+            throw new InsufficientAssetException("Insufficient asset for the order");
+        }
+
         Order order = Order.builder()
-                .customerId(orderRequestDTO.getCustomerId())
+                .customerId(customerId.toString())
                 .assetName(orderRequestDTO.getAssetName())
                 .orderSide(orderRequestDTO.getOrderSide())
                 .size(orderRequestDTO.getSize())
@@ -33,6 +49,8 @@ public class OrderService {
                 .build();
         
         Order savedOrder = orderRepository.save(order);
+        assetService.updateAssetForOrder(savedOrder, asset);
+
         return convertToResponseDTO(savedOrder);
     }
 
@@ -84,8 +102,11 @@ public class OrderService {
     }
 
     public boolean deleteOrder(Long id) {
-        if (orderRepository.existsById(id)) {
-            orderRepository.deleteById(id);
+        Optional<Order> order = orderRepository.findById(id);
+
+        if (order.isPresent() && order.get().getStatus() == OrderStatus.PENDING) {
+            order.get().setStatus(OrderStatus.CANCELED);
+            orderRepository.save(order.get());
             return true;
         }
         return false;
@@ -104,4 +125,35 @@ public class OrderService {
                 order.getLastModifiedDate()
         );
     }
+
+    private boolean checkIfAssetIsNotSufficient(OrderRequestDTO orderRequest, Asset asset) {
+        if (asset == null) {
+            return true;
+        }
+
+        if (orderRequest.getOrderSide().equals(OrderSide.BUY)) {
+            BigDecimal totalCost = orderRequest.getPrice().multiply(BigDecimal.valueOf(orderRequest.getSize()));
+            return asset.getUsableSize() < totalCost.longValue();
+
+        } else if (orderRequest.getOrderSide().equals(OrderSide.SELL)) {
+            return asset.getUsableSize() < orderRequest.getSize();
+        }
+        
+        return false;
+    }
+
+    private void validateOrderRequest(Long customerId, OrderRequestDTO request) {
+        Asset asset = getRequiredAsset(customerId, request);
+        if (checkIfAssetIsNotSufficient(request, asset)) {
+            throw new InsufficientAssetException("Insufficient asset for the order");
+        }
+    }
+
+    private Asset getRequiredAsset(Long customerId, OrderRequestDTO request) {
+        return request.getOrderSide().equals(OrderSide.BUY)
+                ? assetService.getAssetByCustomerIdAndName(customerId, "TRY")
+                : assetService.getAssetByCustomerIdAndName(customerId, request.getAssetName());
+    }
+
+
 }

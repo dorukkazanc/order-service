@@ -15,9 +15,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class OrderRequestDTO {
     
-    @NotBlank(message = "Customer ID cannot be blank")
-    private String customerId;
-    
     @NotBlank(message = "Asset name cannot be blank")
     private String assetName;
     
