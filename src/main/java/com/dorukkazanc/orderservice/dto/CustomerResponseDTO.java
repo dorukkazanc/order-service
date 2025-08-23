@@ -16,7 +16,7 @@ public class CustomerResponseDTO {
     
     private Long id;
     private String username;
-    private boolean active;
+    private Boolean active;
     private UserRole role;
     private LocalDateTime createdDate;
     private LocalDateTime lastModifiedDate;

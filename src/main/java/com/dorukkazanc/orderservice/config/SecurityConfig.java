@@ -31,7 +31,7 @@ class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(
                 "/h2-console/**",
-                "/api/auth/**"
+                "/api/auth/login"
         );
     }
 

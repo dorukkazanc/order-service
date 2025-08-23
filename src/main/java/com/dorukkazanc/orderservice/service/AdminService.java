@@ -151,7 +151,11 @@ public class AdminService {
     public Page<OrderResponseDTO> searchOrders(DynamicRequestDTO request) {
         Specification<Order> spec = DynamicQueryBuilder.buildSpecification(request);
         Pageable pageable = PageableBuilder.build(request, "createdDate");
-
+        
+        if (spec == null) {
+            spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        }
+        
         Page<Order> orders = orderRepository.findAll(spec, pageable);
         return orders.map(this::convertToOrderResponseDTO);
     }
@@ -173,7 +177,11 @@ public class AdminService {
     public Page<CustomerResponseDTO> searchCustomers(DynamicRequestDTO request) {
         Specification<Customer> spec = DynamicQueryBuilder.buildSpecification(request);
         Pageable pageable = PageableBuilder.build(request, "id");
-
+        
+        if (spec == null) {
+            spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        }
+        
         Page<Customer> customers = customerRepository.findAll(spec, pageable);
         return customers.map(this::convertToCustomerResponseDTO);
     }
@@ -183,7 +191,7 @@ public class AdminService {
         return CustomerResponseDTO.builder()
                 .id(customer.getId())
                 .username(customer.getUsername())
-                .active(customer.getActive())
+                .active(customer.getActive() != null ? customer.getActive() : false)
                 .role(customer.getRole())
                 .createdDate(customer.getCreatedDate())
                 .lastModifiedDate(customer.getLastModifiedDate())

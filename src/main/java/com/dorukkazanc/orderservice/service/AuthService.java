@@ -63,7 +63,7 @@ public class AuthService {
         
         Customer admin = Customer.builder()
                 .username(customerUpdateDTO.getUsername())
-                .password(passwordEncoder.encode("admin123")) // Default password for admin
+                .password(passwordEncoder.encode("admin123"))
                 .active(true)
                 .role(UserRole.ADMIN)
                 .build();
@@ -73,7 +73,7 @@ public class AuthService {
         return CustomerResponseDTO.builder()
                 .id(savedAdmin.getId())
                 .username(savedAdmin.getUsername())
-                .active(savedAdmin.getActive())
+                .active(savedAdmin.getActive() != null ? savedAdmin.getActive() : false)
                 .role(savedAdmin.getRole())
                 .createdDate(savedAdmin.getCreatedDate())
                 .lastModifiedDate(savedAdmin.getLastModifiedDate())

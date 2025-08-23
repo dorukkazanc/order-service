@@ -146,7 +146,6 @@ public class AdminController {
         }
     }
 
-    // Admin Search with Dynamic Filters
     @PostMapping("/orders/search")
     public ResponseEntity<BaseResponse<List<OrderResponseDTO>>> searchOrders(@RequestBody DynamicRequestDTO request) {
         try {
