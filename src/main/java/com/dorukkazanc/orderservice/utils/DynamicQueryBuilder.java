@@ -8,6 +8,8 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +37,7 @@ public class DynamicQueryBuilder {
         try {
             FilterOperator operator = FilterOperator.fromValue(filter.getOperator());
             String field = filter.getField();
-            Object value = filter.getValue();
+            Object value = convertValueToFieldType(root, field, filter.getValue());
 
             return switch (operator) {
                 case EQUALS -> criteriaBuilder.equal(root.get(field), value);
@@ -74,6 +76,38 @@ public class DynamicQueryBuilder {
             };
         } catch (Exception e) {
             return null;
+        }
+    }
+    
+    private static <T> Object convertValueToFieldType(Root<T> root, String fieldName, Object value) {
+        if (value == null) return null;
+        
+        try {
+            Class<?> fieldType = root.get(fieldName).getJavaType();
+            
+            if (fieldType == LocalDateTime.class && value instanceof String) {
+                return LocalDateTime.parse((String) value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            }
+            
+            if (fieldType == Long.class && value instanceof String) {
+                return Long.parseLong((String) value);
+            }
+            
+            if (fieldType == Integer.class && value instanceof String) {
+                return Integer.parseInt((String) value);
+            }
+            
+            if (fieldType == Double.class && value instanceof String) {
+                return Double.parseDouble((String) value);
+            }
+            
+            if (fieldType == Boolean.class && value instanceof String) {
+                return Boolean.parseBoolean((String) value);
+            }
+            
+            return value;
+        } catch (Exception e) {
+            return value;
         }
     }
 } 
