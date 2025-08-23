@@ -113,16 +113,17 @@ public class OrderService {
     }
 
     private OrderResponseDTO convertToResponseDTO(Order order) {
-        return new OrderResponseDTO(
-                order.getId(),
-                order.getCustomerId(),
-                order.getAssetName(),
-                order.getOrderSide(),
-                order.getSize(),
-                order.getPrice(),
-                order.getStatus(),
-                order.getCreatedDate(),
-                order.getLastModifiedDate()
+        return OrderResponseDTO.builder()
+                .id(order.getId())
+                .customerId(order.getCustomerId())
+                .assetName(order.getAssetName())
+                .orderSide(order.getOrderSide())
+                .size(order.getSize())
+                .price(order.getPrice())
+                .status(order.getStatus())
+                .createdDate(order.getCreatedDate())
+                .lastModifiedDate(order.getLastModifiedDate())
+                .build(
         );
     }
 
