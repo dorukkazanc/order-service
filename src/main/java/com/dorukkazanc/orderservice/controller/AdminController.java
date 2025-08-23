@@ -2,6 +2,7 @@ package com.dorukkazanc.orderservice.controller;
 
 import com.dorukkazanc.orderservice.dto.*;
 import com.dorukkazanc.orderservice.service.AdminService;
+import com.dorukkazanc.orderservice.service.MatchService;
 import com.dorukkazanc.orderservice.service.ResponseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final ResponseService responseService;
+    private final MatchService matchService;
 
     @GetMapping("/customers")
     public ResponseEntity<BaseResponse<List<CustomerResponseDTO>>> getAllCustomers() {
@@ -179,8 +181,8 @@ public class AdminController {
     @PostMapping("/orders/match/{orderId}")
     public ResponseEntity<BaseResponse<OrderMatchResponseDTO>> matchOrder(@PathVariable Long orderId) {
         try {
-            OrderMatchResponseDTO approvedOrder = adminService.matchOrder(orderId);
-            return responseService.success(approvedOrder, "Order approved successfully");
+            matchService.matchOrder(orderId);
+            return responseService.success(null, "Order approved successfully");
         } catch (Exception e) {
             return responseService.error(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

@@ -1,7 +1,6 @@
 package com.dorukkazanc.orderservice.service;
 
 import com.dorukkazanc.orderservice.dto.OrderResponseDTO;
-import com.dorukkazanc.orderservice.entity.Order;
 import com.dorukkazanc.orderservice.enums.OrderSide;
 import com.dorukkazanc.orderservice.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,6 @@ public class MatchService {
     private final OrderService orderService;
     private final AssetService assetService;
 
-
     public void matchOrder(Long orderId) {
         OrderResponseDTO order = orderService.getOrderById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
@@ -28,9 +26,11 @@ public class MatchService {
             orderService.getOrdersByOrderSide(OrderSide.SELL)
                     .stream()
                     .filter(sellOrder -> sellOrder.getAssetName().equals(order.getAssetName())
-                            && !Objects.equals(order.getCustomerId(), sellOrder.getCustomerId()))
+                            && !Objects.equals(order.getCustomerId(), sellOrder.getCustomerId())
+                            && sellOrder.getPrice().compareTo(order.getPrice()) <= 0)
                     .findFirst()
                     .ifPresent(sellOrder -> {
+                        var xd = sellOrder;
                         // Execute match logic
                     });
         } else {

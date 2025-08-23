@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,7 +40,7 @@ public class AuthController {
             LoginResponseDTO response = authService.login(loginRequestDTO, request);
             return responseService.success(response, "Login successful");
         } catch (AuthenticationException e) {
-            return responseService.unauthorized("Invalid username or password");
+            return responseService.error(e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
     }
     
