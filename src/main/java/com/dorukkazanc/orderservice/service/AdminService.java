@@ -4,8 +4,6 @@ import com.dorukkazanc.orderservice.dto.*;
 import com.dorukkazanc.orderservice.entity.Asset;
 import com.dorukkazanc.orderservice.entity.Customer;
 import com.dorukkazanc.orderservice.entity.Order;
-import com.dorukkazanc.orderservice.enums.OrderStatus;
-import com.dorukkazanc.orderservice.exception.InsufficientAssetException;
 import com.dorukkazanc.orderservice.repository.AssetRepository;
 import com.dorukkazanc.orderservice.repository.CustomerRepository;
 import com.dorukkazanc.orderservice.repository.OrderRepository;
@@ -19,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -223,4 +220,10 @@ public class AdminService {
                 .lastModifiedDate(order.getLastModifiedDate())
                 .build();
     }
-} 
+
+    public OrderMatchResponseDTO matchOrder(Long orderId) {
+    Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        return null;
+    }
+}

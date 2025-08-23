@@ -120,6 +120,14 @@ public class OrderService {
         return false;
     }
 
+    public List<OrderResponseDTO> getOrdersByOrderSide(OrderSide orderSide) {
+        return orderRepository.findOrdersByOrderSide(orderSide)
+                .stream()
+                .filter(order -> order.getStatus() == OrderStatus.PENDING)
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
     private OrderResponseDTO convertToResponseDTO(Order order) {
         return OrderResponseDTO.builder()
                 .id(order.getId())

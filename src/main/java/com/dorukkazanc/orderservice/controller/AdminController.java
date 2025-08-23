@@ -175,4 +175,14 @@ public class AdminController {
             return responseService.error(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-} 
+
+    @PostMapping("/orders/match/{orderId}")
+    public ResponseEntity<BaseResponse<OrderMatchResponseDTO>> matchOrder(@PathVariable Long orderId) {
+        try {
+            OrderMatchResponseDTO approvedOrder = adminService.matchOrder(orderId);
+            return responseService.success(approvedOrder, "Order approved successfully");
+        } catch (Exception e) {
+            return responseService.error(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+}
