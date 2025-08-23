@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -41,6 +42,16 @@ public class Order extends AuditableEntity {
     protected void onCreate(){
         if(this.status == null){
             this.status = OrderStatus.PENDING;
+        }
+        if(this.getCreatedDate() == null){
+            this.setCreatedDate(LocalDateTime.now());
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate(){
+        if(this.getLastModifiedDate() == null){
+            this.setLastModifiedDate(LocalDateTime.now());
         }
     }
 }
