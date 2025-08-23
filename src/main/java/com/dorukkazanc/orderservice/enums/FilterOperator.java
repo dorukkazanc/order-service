@@ -23,10 +23,6 @@ public enum FilterOperator {
         this.value = value;
     }
     
-    public String getValue() {
-        return value;
-    }
-    
     public static FilterOperator fromValue(String value) {
         for (FilterOperator operator : values()) {
             if (operator.value.equals(value)) {

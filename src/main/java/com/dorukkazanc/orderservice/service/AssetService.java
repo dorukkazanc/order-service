@@ -14,11 +14,10 @@ import com.dorukkazanc.orderservice.enums.OrderSide;
 import com.dorukkazanc.orderservice.exception.InsufficientAssetException;
 import com.dorukkazanc.orderservice.repository.AssetRepository;
 import com.dorukkazanc.orderservice.utils.DynamicQueryBuilder;
+import com.dorukkazanc.orderservice.utils.PageableBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,11 +40,7 @@ public class AssetService {
     public Page<AssetResponseDTO> searchAssetsByCustomerId(Long customerId, DynamicRequestDTO request) {
         Specification<Asset> spec = DynamicQueryBuilder.buildSpecification(request);
 
-        Pageable pageable = PageRequest.of(
-            request.getPage() != null ? request.getPage() : 0,
-            request.getSize() != null ? request.getSize() : 10,
-            Sort.by(Sort.Direction.DESC, request.getSortBy() != null ? request.getSortBy() : "createdDate")
-        );
+        Pageable pageable = PageableBuilder.build(request, "createdDate");
 
         spec = spec.and((root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("customerId"), customerId.toString()));
