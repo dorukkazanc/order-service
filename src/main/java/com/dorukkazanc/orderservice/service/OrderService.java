@@ -1,5 +1,6 @@
 package com.dorukkazanc.orderservice.service;
 
+import com.dorukkazanc.orderservice.dto.DynamicRequestDTO;
 import com.dorukkazanc.orderservice.dto.OrderRequestDTO;
 import com.dorukkazanc.orderservice.dto.OrderResponseDTO;
 import com.dorukkazanc.orderservice.dto.OrderUpdateDTO;
@@ -9,7 +10,12 @@ import com.dorukkazanc.orderservice.enums.OrderSide;
 import com.dorukkazanc.orderservice.enums.OrderStatus;
 import com.dorukkazanc.orderservice.exception.InsufficientAssetException;
 import com.dorukkazanc.orderservice.repository.OrderRepository;
+import com.dorukkazanc.orderservice.utils.DynamicQueryBuilder;
+import com.dorukkazanc.orderservice.utils.PageableBuilder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,21 +73,23 @@ public class OrderService {
         return orderRepository.findById(id)
                 .map(this::convertToResponseDTO);
     }
-
+    
     @Transactional(readOnly = true)
-    public List<OrderResponseDTO> getOrdersByCustomerId(String customerId) {
-        return orderRepository.findByCustomerId(customerId)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<OrderResponseDTO> getOrdersByCustomerIdAndDateRange(String customerId, LocalDateTime startDate, LocalDateTime endDate) {
-        return orderRepository.findByCustomerIdAndCreatedDateBetween(customerId, startDate, endDate)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
+    public Page<OrderResponseDTO> searchOrdersByCustomerId(Long customerId, DynamicRequestDTO request) {
+        Specification<Order> spec = DynamicQueryBuilder.buildSpecification(request);
+        
+        Pageable pageable = PageableBuilder.build(request, "createdDate");
+        
+        if (spec != null) {
+            spec = spec.and((root, query, criteriaBuilder) -> 
+                criteriaBuilder.equal(root.get("customerId"), customerId.toString()));
+        } else {
+            spec = (root, query, criteriaBuilder) -> 
+                criteriaBuilder.equal(root.get("customerId"), customerId.toString());
+        }
+        
+        Page<Order> orders = orderRepository.findAll(spec, pageable);
+        return orders.map(this::convertToResponseDTO);
     }
 
     public Optional<OrderResponseDTO> updateOrder(Long id, OrderUpdateDTO orderUpdateDTO) {

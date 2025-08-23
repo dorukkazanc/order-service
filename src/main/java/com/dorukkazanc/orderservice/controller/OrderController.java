@@ -6,6 +6,7 @@
 package com.dorukkazanc.orderservice.controller;
 
 import com.dorukkazanc.orderservice.dto.BaseResponse;
+import com.dorukkazanc.orderservice.dto.DynamicRequestDTO;
 import com.dorukkazanc.orderservice.dto.OrderRequestDTO;
 import com.dorukkazanc.orderservice.dto.OrderResponseDTO;
 import com.dorukkazanc.orderservice.dto.OrderUpdateDTO;
@@ -47,46 +48,18 @@ public class OrderController {
         }
 
     }
-
-    @GetMapping
-    public ResponseEntity<BaseResponse<List<OrderResponseDTO>>> getAllOrders(
-            Authentication auth,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        
-        Customer customer = (Customer) auth.getPrincipal();
-        List<OrderResponseDTO> orders;
-        
-        if (startDate != null && endDate != null) {
-            orders = orderService.getOrdersByCustomerIdAndDateRange(customer.getId().toString(), startDate, endDate);
-        } else {
-            orders = orderService.getOrdersByCustomerId(customer.getId().toString());
+    
+    @PostMapping("/search")
+    public ResponseEntity<BaseResponse<List<OrderResponseDTO>>> searchOrders(
+            @RequestBody DynamicRequestDTO request,
+            Authentication authentication) {
+        try {
+            Customer customer = (Customer) authentication.getPrincipal();
+            List<OrderResponseDTO> orders = orderService.searchOrdersByCustomerId(customer.getId(), request).getContent();
+            return responseService.success(orders, "Orders searched successfully");
+        } catch (Exception e) {
+            return responseService.error(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return responseService.success(orders, "Orders retrieved successfully");
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<OrderResponseDTO>> getOrderById(@PathVariable Long id) {
-        return responseService.fromOptional(
-                orderService.getOrderById(id),
-                "Order found",
-                "Order not found with id: " + id
-        );
-    }
-
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<BaseResponse<List<OrderResponseDTO>>> getOrdersByCustomerId(
-            @PathVariable String customerId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        
-        List<OrderResponseDTO> orders;
-        if (startDate != null && endDate != null) {
-            orders = orderService.getOrdersByCustomerIdAndDateRange(customerId, startDate, endDate);
-        } else {
-            orders = orderService.getOrdersByCustomerId(customerId);
-        }
-        return responseService.success(orders, "Customer orders retrieved successfully");
     }
 
     @PutMapping("/{id}")
