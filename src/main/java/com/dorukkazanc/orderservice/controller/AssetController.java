@@ -10,6 +10,7 @@ import com.dorukkazanc.orderservice.service.ResponseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/assets")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('CUSTOMER')")
 public class AssetController {
     private final AssetService assetService;
     private final ResponseService responseService;
