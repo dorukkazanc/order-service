@@ -101,8 +101,8 @@ public class OrderService {
                 });
     }
 
-    public boolean deleteOrder(Long id) {
-        Optional<Order> order = orderRepository.findById(id);
+    public boolean deleteOrder(Long id, Long customerId) {
+        Optional<Order> order = orderRepository.findOrderByIdAndCustomerId(id, customerId.toString());
 
         if (order.isPresent() && order.get().getStatus() == OrderStatus.PENDING) {
             order.get().setStatus(OrderStatus.CANCELED);

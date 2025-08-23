@@ -100,10 +100,12 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<BaseResponse<Void>> deleteOrder(@PathVariable Long id) {
-        boolean deleted = orderService.deleteOrder(id);
+    public ResponseEntity<BaseResponse<Void>> deleteOrder(@PathVariable Long id, Authentication authentication) {
+        Customer customer = (Customer) authentication.getPrincipal();
+
+        boolean deleted = orderService.deleteOrder(id, customer.getId());
         return deleted 
-                ? responseService.noContent("Order canceled successfully")
-                : responseService.notFound("Order not found with id: " + id);
+                ? responseService.successDelete("Order canceled successfully")
+                : responseService.error("Only pending orders can be canceled or order not found with id: " + id, HttpStatus.NOT_FOUND);
     }
 }

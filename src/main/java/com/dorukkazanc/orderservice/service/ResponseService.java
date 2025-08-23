@@ -1,12 +1,10 @@
 package com.dorukkazanc.orderservice.service;
 
 import com.dorukkazanc.orderservice.dto.BaseResponse;
-import com.dorukkazanc.orderservice.dto.OrderResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -43,5 +41,10 @@ public class ResponseService {
         return optional
                 .map(data -> success(data, successMessage))
                 .orElse(notFound(notFoundMessage));
+    }
+
+    public ResponseEntity<BaseResponse<Void>> successDelete(String message) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(BaseResponse.success(null, message));
     }
 }
