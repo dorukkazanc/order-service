@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -44,6 +45,9 @@ public class MatchService {
                 .size(remainingSize)
                 .status(newStatus)
                 .build());
+                
+        log.info("Order {} matching completed. Status: {}, Remaining size: {}, Executions: {}", 
+                orderId, newStatus, remainingSize, executionResults.size());
     }
 
     private Long matchBuyOrder(OrderResponseDTO buyOrder, List<MatchExecutionResult> executionResults, Long remainingSize) {
@@ -52,10 +56,9 @@ public class MatchService {
                 .filter(sellOrder -> sellOrder.getStatus() == OrderStatus.PENDING
                         && sellOrder.getAssetName().equals(buyOrder.getAssetName())
                         && !Objects.equals(buyOrder.getCustomerId(), sellOrder.getCustomerId())
-                        && sellOrder.getPrice().compareTo(buyOrder.getPrice()) <= 0)
-                .sorted(Comparator.comparing(OrderResponseDTO::getPrice)
-                        .thenComparing(OrderResponseDTO::getCreatedDate,
-                                Comparator.nullsLast(Comparator.naturalOrder())))
+                        && sellOrder.getPrice().compareTo(buyOrder.getPrice()) == 0)
+                .sorted(Comparator.comparing(OrderResponseDTO::getCreatedDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
 
         for (OrderResponseDTO sellOrder : orders) {
@@ -92,8 +95,9 @@ public class MatchService {
                         && buyOrder.getAssetName().equals(sellOrder.getAssetName())
                         && !Objects.equals(sellOrder.getCustomerId(), buyOrder.getCustomerId())
                         && buyOrder.getPrice().compareTo(sellOrder.getPrice()) == 0)
-                .max(Comparator.comparing(OrderResponseDTO::getPrice).thenComparing(OrderResponseDTO::getCreatedDate))
-                .stream().toList();
+                .sorted(Comparator.comparing(OrderResponseDTO::getCreatedDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
 
         for (OrderResponseDTO buyOrder : orders) {
             if( remainingSize <= 0) {
@@ -125,6 +129,13 @@ public class MatchService {
     private MatchExecutionResult executeMatches(OrderResponseDTO buyOrder, OrderResponseDTO sellOrder, Long matchedSize, BigDecimal matchedPrice) {
         BigDecimal totalCost = matchedPrice.multiply(BigDecimal.valueOf(matchedSize));
         assetService.transferAssetsBetweenCustomers(buyOrder.getCustomerId(), sellOrder.getCustomerId(), buyOrder.getAssetName(), matchedSize, totalCost);
-        return null;
+        
+        return MatchExecutionResult.builder()
+                .matchedOrderId(sellOrder.getId())
+                .matchedSize(matchedSize)
+                .executionPrice(matchedPrice)
+                .totalValue(totalCost)
+                .matchTime(LocalDateTime.now())
+                .build();
     }
 }
