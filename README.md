@@ -162,7 +162,7 @@ POST /api/orders/search
 
 ### Role-Based Security
 - **CUSTOMER**: Can manage their own orders and view their assets
-- **ADMIN**: Full access to all entities and operations
+- **ADMIN**: Full access to all entities and operations using /admin endpoints
 
 ### Order Matching
 - Admin can match/approve orders
