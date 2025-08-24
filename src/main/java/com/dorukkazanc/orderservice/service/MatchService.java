@@ -8,6 +8,7 @@ import com.dorukkazanc.orderservice.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ public class MatchService {
     private final OrderService orderService;
     private final AssetService assetService;
 
+    @Transactional
     public void matchOrder(Long orderId) {
         OrderResponseDTO order = orderService.getOrderById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
@@ -127,15 +129,21 @@ public class MatchService {
     }
 
     private MatchExecutionResult executeMatches(OrderResponseDTO buyOrder, OrderResponseDTO sellOrder, Long matchedSize, BigDecimal matchedPrice) {
-        BigDecimal totalCost = matchedPrice.multiply(BigDecimal.valueOf(matchedSize));
-        assetService.transferAssetsBetweenCustomers(buyOrder.getCustomerId(), sellOrder.getCustomerId(), buyOrder.getAssetName(), matchedSize, totalCost);
-        
-        return MatchExecutionResult.builder()
-                .matchedOrderId(sellOrder.getId())
-                .matchedSize(matchedSize)
-                .executionPrice(matchedPrice)
-                .totalValue(totalCost)
-                .matchTime(LocalDateTime.now())
-                .build();
+       try {
+           BigDecimal totalCost = matchedPrice.multiply(BigDecimal.valueOf(matchedSize));
+           assetService.transferAssetsBetweenCustomers(buyOrder.getCustomerId(), sellOrder.getCustomerId(), buyOrder.getAssetName(), matchedSize, totalCost);
+
+           return MatchExecutionResult.builder()
+                   .matchedOrderId(sellOrder.getId())
+                   .matchedSize(matchedSize)
+                   .executionPrice(matchedPrice)
+                   .totalValue(totalCost)
+                   .matchTime(LocalDateTime.now())
+                   .build();
+       } catch (Exception e) {
+           log.error("Error executing match between BUY order {} and SELL order {}: {}",
+                   buyOrder.getId(), sellOrder.getId(), e.getMessage());
+           throw new RuntimeException("Match execution failed: " + e.getMessage(), e);
+       }
     }
 }
