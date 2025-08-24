@@ -78,7 +78,6 @@ public class AssetService {
                 .build();
     }
 
-    @Transactional
     public void transferAssetsBetweenCustomers(String makerId, String takerId, String assetName, Long matchedSize, BigDecimal totalCost) {
         Asset makerAssetTRY = assetRepository.findByCustomerIdAndAssetName(makerId, "TRY")
                 .orElseThrow(() -> new RuntimeException("Maker asset not found"));
