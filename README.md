@@ -149,9 +149,9 @@ POST /api/assets/search
 
 ### Postman Collection
 
-A complete Postman collection is available with all API endpoints pre-configured:
+A complete Postman collection is available with most crucial API endpoints pre-configured:
 
-**[Download Order Service Postman Collection](https://doruk-5717373.postman.co/workspace/doruk's-Workspace~b13a59ef-0ba7-4fca-8f27-8704f91eeec4/collection/43684775-6354d6fa-7cd8-4c8b-8e2e-f236dfeaf24d?action=share&source=copy-link&creator=43684775)**
+**[Download Postman Collection](https://doruk-5717373.postman.co/workspace/doruk's-Workspace~b13a59ef-0ba7-4fca-8f27-8704f91eeec4/collection/43684775-6354d6fa-7cd8-4c8b-8e2e-f236dfeaf24d?action=share&source=copy-link&creator=43684775)**
 
 ### Import Instructions
 
