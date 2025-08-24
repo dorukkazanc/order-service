@@ -1,12 +1,12 @@
 # Order Service
 
-A Spring Boot microservice for managing trading orders, assets, and customers with Spring Security authentication and role-based access control.
+A Spring Boot microservice for managing trading orders and assets with Spring Security authentication and role-based access control.
 
 ## Features
 
 - Order management (create, update, delete, search, match)
 - Asset management with search functionality
-- Customer management
+- Matching service integration
 - Dynamic filtering and pagination
 - Role-based authorization (ADMIN, CUSTOMER)
 - H2 in-memory database
@@ -16,7 +16,7 @@ A Spring Boot microservice for managing trading orders, assets, and customers wi
 
 - Java 17+
 - Maven/Gradle
-- Docker (optional)
+- Docker
 
 ## Quick Start
 
@@ -68,16 +68,15 @@ The service will be available at `http://localhost:8080`
 
 ## Authentication
 
-The service uses Spring Security with session-based authentication:
+Spring Security with session-based authentication
 
 - **Default Admin**: `admin` / `123`
-- Password encoding is disabled for development (uses DisableEncoder)
 
 ### Sample Login Request
 ```json
 POST /api/auth/login
 {
-  "username": "admin",
+  "username": "admin", // alice, user (Customer roles)
   "password": "123"
 }
 ```
@@ -98,24 +97,19 @@ All search endpoints support dynamic filtering with operators:
 
 ### Sample Search Request
 ```json
-POST /api/orders/search
+POST /api/assets/search
 {
-  "page": 0,
-  "size": 10,
-  "sortBy": "createDate",
-  "sortDirection": "desc",
   "filters": [
     {
-      "field": "status",
-      "operator": "equals",
-      "value": "PENDING"
-    },
-    {
-      "field": "quantity",
-      "operator": "greater_than",
-      "value": "100"
+      "field": "assetName",
+      "operator": "contains",
+      "value": "TRY"
     }
-  ]
+  ],
+  "sortBy": "createdDate",
+  "sortDirection": "desc",
+  "page": 0,
+  "size": 20
 }
 ```
 
@@ -131,23 +125,10 @@ POST /api/orders/search
 
 - Session-based authentication
 - Role-based access control (@PreAuthorize)
-- H2 console excluded from security
+- H2 console excluded from security for monitoring
 - CSRF disabled for API usage
-- Custom password encoder (no encoding for development)
+- Disabled password encoding for simplicity
 
-## Project Structure
-
-```
-src/main/java/com/dorukkazanc/orderservice/
-├── config/          # Security configuration
-├── controller/      # REST controllers (Admin, Auth, Order, Asset)
-├── dto/            # Data transfer objects
-├── entity/         # JPA entities (Customer, Order, Asset)
-├── enums/          # FilterOperator enum
-├── service/        # Business logic services
-├── utils/          # Utility classes (DynamicQueryBuilder, PageableBuilder)
-└── OrderServiceApplication.java
-```
 
 ## Key Features
 
@@ -163,19 +144,6 @@ src/main/java/com/dorukkazanc/orderservice/
 ### Order Matching
 - Admin can match/approve orders
 - Integration with MatchService for order processing
-
-## Development
-
-```bash
-# Run tests
-./gradlew test
-
-# Build application
-./gradlew build
-
-# Run with specific profile
-./gradlew bootRun --args='--spring.profiles.active=dev'
-```
 
 ## Testing with Postman
 
