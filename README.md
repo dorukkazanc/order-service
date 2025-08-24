@@ -113,6 +113,29 @@ POST /api/assets/search
 }
 ```
 
+### Sample Date range search
+```json
+POST /api/orders/search
+{
+  "filters": [
+    {
+      "field": "createdDate",
+      "operator": "gte",
+      "value": "2025-08-23T09:38:00"
+    },
+    {
+      "field": "createdDate",
+      "operator": "lte",
+      "value": "2025-08-23T09:39:00"
+    }
+  ],
+  "sortBy": "createdDate",
+  "sortDirection": "desc",
+  "page": 0,
+  "size": 20
+}
+```
+
 ## Database
 
 - **Type**: H2 In-Memory Database
