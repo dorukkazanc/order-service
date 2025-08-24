@@ -2,7 +2,7 @@ package com.dorukkazanc.orderservice.service;
 
 import com.dorukkazanc.orderservice.dto.MatchExecutionResult;
 import com.dorukkazanc.orderservice.dto.OrderResponseDTO;
-import com.dorukkazanc.orderservice.entity.Order;
+import com.dorukkazanc.orderservice.dto.OrderUpdateDTO;
 import com.dorukkazanc.orderservice.enums.OrderSide;
 import com.dorukkazanc.orderservice.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -32,13 +32,18 @@ public class MatchService {
 
         List<MatchExecutionResult> executionResults = new ArrayList<>();
         Long remainingSize = order.getSize();
-        Long initialSize = order.getSize();
 
         if (order.getOrderSide().equals(OrderSide.BUY)) {
             remainingSize = matchBuyOrder(order, executionResults, remainingSize);
         } else {
             remainingSize = matchSellOrder(order, executionResults, remainingSize);
         }
+        OrderStatus newStatus = remainingSize <= 0 ? OrderStatus.MATCHED : OrderStatus.PENDING;
+
+        orderService.updateOrder(orderId, OrderUpdateDTO.builder()
+                .size(remainingSize)
+                .status(newStatus)
+                .build());
     }
 
     private Long matchBuyOrder(OrderResponseDTO buyOrder, List<MatchExecutionResult> executionResults, Long remainingSize) {
@@ -65,6 +70,15 @@ public class MatchService {
             executionResults.add(execution);
 
             remainingSize -= matchedSize;
+
+            Long newSize = sellOrder.getSize() - matchedSize;
+            OrderStatus newStatus = newSize <= 0 ? OrderStatus.MATCHED : sellOrder.getStatus();
+
+            orderService.updateOrder(sellOrder.getId(), OrderUpdateDTO.builder()
+                    .size(newSize)
+                    .status(newStatus)
+                    .build());
+
             log.info("BUY order {} matched {} shares with BUY order {} at price {}",
                     buyOrder.getId(), matchedSize, sellOrder.getId(), matchedPrice);        }
 
@@ -77,7 +91,7 @@ public class MatchService {
                 .filter(buyOrder -> buyOrder.getStatus() == OrderStatus.PENDING
                         && buyOrder.getAssetName().equals(sellOrder.getAssetName())
                         && !Objects.equals(sellOrder.getCustomerId(), buyOrder.getCustomerId())
-                        && buyOrder.getPrice().compareTo(sellOrder.getPrice()) >= 0)
+                        && buyOrder.getPrice().compareTo(sellOrder.getPrice()) == 0)
                 .max(Comparator.comparing(OrderResponseDTO::getPrice).thenComparing(OrderResponseDTO::getCreatedDate))
                 .stream().toList();
 
@@ -93,6 +107,14 @@ public class MatchService {
             executionResults.add(execution);
 
             remainingSize -= matchedSize;
+
+            Long newSize = buyOrder.getSize() - matchedSize;
+            OrderStatus newStatus = newSize <= 0 ? OrderStatus.MATCHED : buyOrder.getStatus();
+
+            orderService.updateOrder(buyOrder.getId(), OrderUpdateDTO.builder()
+                    .size(newSize)
+                    .status(newStatus)
+                    .build());
             log.info("SELL order {} matched {} shares with BUY order {} at price {}",
                     sellOrder.getId(), matchedSize, buyOrder.getId(), matchedPrice);
         }

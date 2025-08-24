@@ -112,14 +112,15 @@ public class AssetService {
             throw new InsufficientAssetException("Insufficient asset for maker");
         }
 
-        makerAsset.setSize(makerAsset.getUsableSize() + matchedSize);
+        makerAsset.setSize(makerAsset.getSize() + matchedSize);
+        makerAsset.setUsableSize(makerAsset.getUsableSize() + matchedSize);
+        makerAssetTRY.setSize(makerAssetTRY.getSize() - totalCost.longValue());
 
-        takerAsset.setSize(takerAsset.getUsableSize() - matchedSize);
 
-        makerAssetTRY.setSize(makerAssetTRY.getUsableSize() - totalCost.longValue());
-        takerAssetTRY.setSize(takerAssetTRY.getUsableSize() + totalCost.longValue());
+        takerAsset.setSize(takerAsset.getSize() - matchedSize);
+        takerAssetTRY.setSize(takerAssetTRY.getSize() + totalCost.longValue());
+        takerAssetTRY.setUsableSize(takerAssetTRY.getUsableSize() + totalCost.longValue());
 
-        assetRepository.save(makerAssetTRY);
-        assetRepository.save(takerAsset);
+        assetRepository.saveAll(List.of(makerAssetTRY, makerAsset, takerAssetTRY, takerAsset));
     }
 }
