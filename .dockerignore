@@ -1,0 +1,14 @@
+.git
+.gitignore
+README.md
+*.md
+.gradle
+build
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+!gradlew.bat
+logs/
+*.log
+.DS_Store
+Thumbs.db 
