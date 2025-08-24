@@ -163,7 +163,6 @@ A complete Postman collection is available with most crucial API endpoints pre-c
 ### Authentication Flow
 
 1. **Login First**: Use the `POST /api/auth/login` endpoint in the Auth folder
-2. **Session Management**: Postman will automatically handle cookies for subsequent requests
-3. **Role-Based Testing**:
+2. **Role-Based Testing**:
   - Use Admin endpoints after admin login
-  - Create/login with customer account for customer endpoints
+  - login with customer account for customer endpoints
