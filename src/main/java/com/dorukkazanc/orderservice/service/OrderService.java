@@ -158,19 +158,4 @@ public class OrderService {
         
         return false;
     }
-
-    private void validateOrderRequest(Long customerId, OrderRequestDTO request) {
-        Asset asset = getRequiredAsset(customerId, request);
-        if (checkIfAssetIsNotSufficient(request, asset)) {
-            throw new InsufficientAssetException("Insufficient asset for the order");
-        }
-    }
-
-    private Asset getRequiredAsset(Long customerId, OrderRequestDTO request) {
-        return request.getOrderSide().equals(OrderSide.BUY)
-                ? assetService.getAssetByCustomerIdAndName(customerId, "TRY")
-                : assetService.getAssetByCustomerIdAndName(customerId, request.getAssetName());
-    }
-
-
 }

@@ -49,6 +49,7 @@ public class AssetService {
         return assets.map(this::convertToResponseDTO);
     }
 
+    @Transactional
     public void updateAssetForOrder(Order order, Asset asset) {
         if (asset == null) {
             throw new InsufficientAssetException("Asset not found for the customer");
@@ -75,5 +76,50 @@ public class AssetService {
                 .createdDate(asset.getCreatedDate())
                 .lastModifiedDate(asset.getLastModifiedDate())
                 .build();
+    }
+
+    @Transactional
+    public void transferAssetsBetweenCustomers(String makerId, String takerId, String assetName, Long matchedSize, BigDecimal totalCost) {
+        Asset makerAssetTRY = assetRepository.findByCustomerIdAndAssetName(makerId, "TRY")
+                .orElseThrow(() -> new RuntimeException("Maker asset not found"));
+
+        Asset makerAsset = assetRepository.findByCustomerIdAndAssetName(makerId, assetName)
+                .orElseGet(() -> {
+                    Asset newAsset = Asset.builder()
+                            .customerId(makerId)
+                            .assetName(assetName)
+                            .size(0L)
+                            .usableSize(0L)
+                            .build();
+                    return assetRepository.save(newAsset);
+                });
+
+        Asset takerAsset = assetRepository.findByCustomerIdAndAssetName(takerId, assetName)
+                .orElseThrow(() -> new RuntimeException("Taker asset not found"));
+
+        Asset takerAssetTRY = assetRepository.findByCustomerIdAndAssetName(takerId, "TRY")
+                .orElseGet(() -> {
+                    Asset newAsset = Asset.builder()
+                            .customerId(takerId)
+                            .assetName("TRY")
+                            .size(0L)
+                            .usableSize(0L)
+                            .build();
+                    return assetRepository.save(newAsset);
+                });
+
+        if (makerAssetTRY.getUsableSize() < totalCost.longValue()) {
+            throw new InsufficientAssetException("Insufficient asset for maker");
+        }
+
+        makerAsset.setSize(makerAsset.getUsableSize() + matchedSize);
+
+        takerAsset.setSize(takerAsset.getUsableSize() - matchedSize);
+
+        makerAssetTRY.setSize(makerAssetTRY.getUsableSize() - totalCost.longValue());
+        takerAssetTRY.setSize(takerAssetTRY.getUsableSize() + totalCost.longValue());
+
+        assetRepository.save(makerAssetTRY);
+        assetRepository.save(takerAsset);
     }
 }
